@@ -1,11 +1,10 @@
+import React from 'react'
+import Dashboard from './pages/dashboard/dashboard';
+
 function App() {
-
-
   return (
-    <>
-    <h1 className="">hello</h1>
-    </>
-  )
+    <Dashboard/>
+  );
 }
 
-export default App
+export default App;
