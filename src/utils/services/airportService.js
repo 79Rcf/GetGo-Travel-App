@@ -5,7 +5,7 @@ const getFlight = async () => {
     const params = new URLSearchParams({
         access_key: avaisionApiKey,
         flight_status: "active",
-        dep_iata: "JFK",
+        dep_iata: "LHR",
         limit: 5
     });
     
@@ -15,11 +15,8 @@ const getFlight = async () => {
         if(!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        
         const data = await response.json();
-        console.log(data.data);
         return data.data;
-        
     } catch (error) {
         console.error("Failed to fetch flight:", error);
         return null;

@@ -12,7 +12,6 @@ const getCountry = async (name) => {
     
     if (Array.isArray(data) && data.length > 0) {
       const countryData = data[0];
-      console.log('Country data received:', countryData.name);
       return countryData;
     } else {
       throw new Error(`Country "${name}" not found`);

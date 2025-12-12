@@ -3,11 +3,7 @@ const getCurrency = async () => {
     
     if (!url) {
         throw new Error('Currency API URL is not configured. Check your .env file');
-    }
-    
-    console.log('Fetching from:', url);
-    
-    
+    }    
     try {
         const response = await fetch(url);
         
@@ -21,8 +17,6 @@ const getCurrency = async () => {
         if (data.error) {
             throw new Error(`API Error: ${data.error.message || data.error}`);
         }
-        
-        console.log('Currency data received:', data);
         return data;
         
     } catch (error) {
