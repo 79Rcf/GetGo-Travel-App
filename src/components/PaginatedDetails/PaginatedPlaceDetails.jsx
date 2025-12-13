@@ -1,39 +1,85 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, increment = 3 }) => {
   const [visibleCount, setVisibleCount] = useState(initialVisible);
 
-  // Filtering function - moved INSIDE the component
-  const filterLowQualityPlaces = (placesToFilter) => {
-    if (!placesToFilter) return [];
+  // Debug logging
+  useEffect(() => {
+    console.log('=== PAGINATED PLACE DETAILS DEBUG ===');
+    console.log('Places received:', places);
+    console.log('Places length:', places?.length);
+    console.log('Place details received:', placeDetails);
+    console.log('Place details length:', placeDetails?.length);
     
-    return placesToFilter.filter(place => {
+    if (places && places.length > 0) {
+      console.log('First place:', places[0]);
+      console.log('First place properties:', places[0].properties);
+    }
+  }, [places, placeDetails]);
+
+  const filterLowQualityPlaces = (placesToFilter) => {
+    console.log('=== FILTER DEBUG ===');
+    console.log('Input places to filter:', placesToFilter?.length);
+    
+    if (!placesToFilter) {
+      console.log('No places to filter');
+      return [];
+    }
+    
+    const filtered = placesToFilter.filter(place => {
       const props = place.properties;
+      console.log('Checking place:', props?.name);
       
-      // Skip if no properties
-      if (!props) return false;
+      if (!props) {
+        console.log('  ❌ No properties');
+        return false;
+      }
       
-      // Quality checks
       const hasName = props.name && props.name.trim().length > 2;
       const hasCategory = props.categories && props.categories.length > 0;
       const hasAddress = props.formatted || props.address_line2;
       const notGeneric = !props.name?.match(/^(building|house|shop|unknown|home|road|street|way)$/i);
+
+      console.log('  Name check:', hasName, props.name);
+      console.log('  Category check:', hasCategory, props.categories);
+      console.log('  Address check:', hasAddress, props.formatted);
+      console.log('  Not generic check:', notGeneric);
       
-      // Score system: keep if 3+ checks pass
       const score = [hasName, hasCategory, hasAddress, notGeneric].filter(Boolean).length;
-      return score >= 3;
+      console.log('  Score:', score, '/ 4');
+      
+      const passes = score >= 3;
+      console.log('  Passes filter?', passes);
+      
+      return passes;
     });
+    
+    console.log('Filtered result:', filtered.length, 'out of', placesToFilter.length);
+    console.log('Filtered places:', filtered.map(p => p.properties.name));
+    
+    return filtered;
   };
 
-  // Use useMemo to cache filtered results (performance optimization)
-  const filteredPlaces = useMemo(() => 
-    filterLowQualityPlaces(places), 
-    [places]
-  );
+  const filteredPlaces = useMemo(() => {
+    console.log('useMemo running with places:', places?.length);
+    return filterLowQualityPlaces(places);
+  }, [places]);
+
+  // Debug: Log filtered places
+  useEffect(() => {
+    console.log('Filtered places result:', filteredPlaces?.length);
+  }, [filteredPlaces]);
 
   if (!filteredPlaces || filteredPlaces.length === 0) {
+    console.log('Rendering empty state - no filtered places');
     return (
       <div className="text-center py-8 text-gray-500">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+          <h3 className="font-bold text-yellow-800">DEBUG INFO:</h3>
+          <p className="text-sm">Original places: {places?.length || 0}</p>
+          <p className="text-sm">Filtered places: {filteredPlaces?.length || 0}</p>
+          <p className="text-sm">Place details: {placeDetails?.length || 0}</p>
+        </div>
         No quality attractions found for this location.
         <p className="text-xs text-gray-400 mt-2">
           Try adjusting your search or check another area.
@@ -53,7 +99,6 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
     setVisibleCount(initialVisible);
   };
 
-  // Create a mapping from place IDs to their details for easy lookup
   const detailsMap = {};
   if (placeDetails && Array.isArray(placeDetails)) {
     placeDetails.forEach(detail => {
@@ -63,9 +108,11 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
     });
   }
 
+  console.log('Rendering with visible places:', visiblePlaces.length);
+  console.log('Details map size:', Object.keys(detailsMap).length);
+
   return (
     <div>
-      {/* Quality filter indicator */}
       <div className="mb-4 text-sm text-gray-600">
         <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
           Filtered for quality
@@ -78,15 +125,17 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {visiblePlaces.map((place, index) => {
           const properties = place.properties;
-          // Get details by place_id instead of index (more reliable)
           const details = properties.place_id ? detailsMap[properties.place_id] : null;
+
+          console.log(`Rendering place ${index}:`, properties.name);
+          console.log('  Place ID:', properties.place_id);
+          console.log('  Found details:', !!details);
 
           return (
             <div 
               key={properties.place_id || index} 
               className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow"
             >
-              {/* Place Image */}
               <div className="h-40 overflow-hidden bg-gray-100">
                 {details?.image ? (
                   <img 
@@ -94,9 +143,11 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
                     alt={properties.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
+                      console.log('Image failed to load for:', properties.name);
                       e.target.style.display = 'none';
                       e.target.parentElement.innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-400"><span class="text-4xl">🏞️</span></div>';
                     }}
+                    onLoad={() => console.log('Image loaded for:', properties.name)}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -105,13 +156,11 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
                 )}
               </div>
 
-              {/* Place Info */}
               <div className="p-4">
                 <h3 className="font-bold text-gray-800 truncate">
                   {properties.name || 'Unnamed Place'}
                 </h3>
-                
-                {/* Categories */}
+
                 {properties.categories && (
                   <div className="mt-2 flex flex-wrap gap-1">
                     {properties.categories.slice(0, 2).map((category, idx) => (
@@ -125,21 +174,18 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
                   </div>
                 )}
 
-                {/* Address */}
                 {properties.formatted && (
                   <p className="text-sm text-gray-600 mt-2 truncate" title={properties.formatted}>
                     📍 {properties.formatted}
                   </p>
                 )}
 
-                {/* Distance */}
                 {properties.distance && (
                   <p className="text-xs text-gray-500 mt-1">
                     {properties.distance.toFixed(0)} meters away
                   </p>
                 )}
 
-                {/* Rating */}
                 {details?.rating && (
                   <div className="mt-2 flex items-center">
                     <span className="text-yellow-500">⭐</span>
@@ -152,15 +198,13 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
                   </div>
                 )}
                 
-                {/* Quality Score (for debugging) */}
                 {process.env.NODE_ENV === 'development' && (
                   <div className="mt-2 text-xs text-gray-400">
-                    Quality check: {[
-                      properties.name?.trim().length > 2 ? '✅ Name' : '❌ Name',
-                      properties.categories?.length > 0 ? '✅ Category' : '❌ Category',
-                      (properties.formatted || properties.address_line2) ? '✅ Address' : '❌ Address',
-                      !properties.name?.match(/^(building|house|shop|unknown|home|road|street|way)$/i) ? '✅ Not generic' : '❌ Generic'
-                    ].join(' | ')}
+                    <div className="font-medium">Debug Info:</div>
+                    <div>Place ID: {properties.place_id}</div>
+                    <div>Has details: {details ? 'Yes' : 'No'}</div>
+                    <div>Image URL: {details?.image ? 'Yes' : 'No'}</div>
+                    <div>Rating: {details?.rating || 'N/A'}</div>
                   </div>
                 )}
               </div>
@@ -169,14 +213,12 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
         })}
       </div>
 
-      {/* Pagination Controls */}
       <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-sm text-gray-600">
           Showing {visiblePlaces.length} of {filteredPlaces.length} quality attractions
         </div>
         
         <div className="flex gap-2">
-          {/* Show Less button */}
           {visibleCount > initialVisible && (
             <button
               onClick={showLess}
@@ -186,7 +228,6 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
             </button>
           )}
 
-          {/* Load More button */}
           {hasMore && (
             <button
               onClick={loadMore}
@@ -199,7 +240,6 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
         </div>
       </div>
 
-      {/* Mobile hint */}
       <div className="mt-4 text-center">
         <p className="text-xs text-gray-500">
           {hasMore ? 'Scroll down or tap "Load More" to see more quality attractions' : 'All quality attractions displayed'}
