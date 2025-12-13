@@ -78,12 +78,12 @@ const PlaceDetails = ({ places, placeDetails = [] }) => {
                       rel="noopener noreferrer"
                       className="text-sm text-blue-600 hover:text-blue-800"
                     >
-                      🌐 Website
+                       Website
                     </a>
                   )}
                   {details.contact && (
                     <span className="text-sm text-gray-500">
-                      📞 {details.contact}
+                       {details.contact}
                     </span>
                   )}
                 </div>

@@ -195,7 +195,7 @@ const Header = ({ onSearch, currentCountry = '' }) => {
               </p>
             </div>
             <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-              <span className="text-blue-600 font-bold">GT</span>
+              <span className="">GT</span>
             </div>
           </div>
         </div>
@@ -209,7 +209,7 @@ const Header = ({ onSearch, currentCountry = '' }) => {
                 setSearchInput(country);
                 onSearch(country);
               }}
-              className="px-3 py-1 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full text-sm transition-all hover:scale-105"
+              className=""
             >
               {country}
             </button>

@@ -15,7 +15,6 @@ const CountryCard = ({ country }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-      {/* Header with Flag and Basic Info */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
           <div className="flex-shrink-0">
@@ -88,11 +87,9 @@ const CountryCard = ({ country }) => {
         </div>
       </div>
 
-      {/* Detailed Information Grid */}
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          
-          {/* Geography & Location */}
+
           <div className="space-y-4">
             <h3 className="font-bold text-lg text-gray-800 border-b pb-2">Geography</h3>
             <div className="space-y-3">
@@ -119,7 +116,6 @@ const CountryCard = ({ country }) => {
             </div>
           </div>
 
-          {/* Culture & Language */}
           <div className="space-y-4">
             <h3 className="font-bold text-lg text-gray-800 border-b pb-2">Culture & Language</h3>
             <div className="space-y-3">
@@ -140,7 +136,6 @@ const CountryCard = ({ country }) => {
             </div>
           </div>
 
-          {/* Maps & International */}
           <div className="space-y-4">
             <h3 className="font-bold text-lg text-gray-800 border-b pb-2">Maps & International</h3>
             <div className="space-y-3">
@@ -188,7 +183,33 @@ const CountryCard = ({ country }) => {
 
         </div>
 
-        {/* Fun Facts Section */}
+        {/* Languages Section - Already Added! */}
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <h3 className="font-bold text-lg mb-4">Languages Spoken</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {country.languages && Object.entries(country.languages).map(([code, name], index) => (
+              <div key={code} className={`p-3 rounded-lg ${index === 0 ? 'bg-blue-50 border border-blue-100' : 'bg-gray-50'}`}>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="font-semibold">{name}</span>
+                    <span className="text-sm text-gray-500 ml-2">({code})</span>
+                  </div>
+                  {index === 0 && (
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                      Primary
+                    </span>
+                  )}
+                </div>
+                {index === 0 && (
+                  <p className="text-sm text-gray-600 mt-2">
+                    Most widely spoken language
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="mt-8 pt-6 border-t border-gray-200">
           <h3 className="font-bold text-lg text-gray-800 mb-4">Interesting Facts</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -219,7 +240,6 @@ const CountryCard = ({ country }) => {
           </div>
         </div>
 
-        {/* Quick Stats Footer */}
         <div className="mt-8 pt-6 border-t border-gray-200">
           <div className="flex flex-wrap gap-4 text-sm text-gray-600">
             {country.idd?.root && (

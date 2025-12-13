@@ -29,7 +29,7 @@ const getPlaces = async (
     
 
     if (data.features.length === 0) {
-      console.log('⚠️ No tourism places found, trying broader categories...');
+      console.log('No tourism places found, trying broader categories...');
       return await getPlacesWithFallback(searchLat, searchLon, radius, limit);
     }
     
@@ -68,11 +68,32 @@ const getPlacesWithFallback = async (lat, lon, radius, limit) => {
     }
   }
   
-  console.log('⚠️ No places found in any category');
+  console.log('No places found in any category');
   return [];
 };
 
 const getPlaceDetails = async (placeId) => {
+  const detailsUrl = `https://api.geoapify.com/v2/place-details?id=${placeId}&apiKey=${apiKey}`;
+
+  console.log(' Fetching place details for:', placeId);
+  
+  try {
+    const response = await fetch(detailsUrl);
+    
+    console.log('Details API Response Status:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch details for place: ${placeId}`);
+    }
+    
+    const data = await response.json();
+    console.log(' Place details received:', data);
+    return data.features?.[0]?.properties || null;
+  } catch (error) {
+    console.error(" Error fetching place details:", error);
+    throw error;
+  }
 };
+
 
 export default { getPlaces, getPlaceDetails };

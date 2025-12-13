@@ -43,7 +43,7 @@ function useDestination(destinationName) {
 
 const placesQuery = useQuery({
   queryKey: ['places', destinationName, lat, lon],
-  queryFn: () => placesService.getPlaces(lat, lon), // Changed this
+  queryFn: () => placesService.getPlaces(lat, lon), 
   enabled: !!lat && !!lon,
 });
 
@@ -54,7 +54,7 @@ const placeDetailsQuery = useQuery({
     
     const topPlaces = placesQuery.data.slice(0, 3);
     const detailsPromises = topPlaces.map(place => 
-      placesService.getPlaceDetails(place.properties.place_id) // Changed this
+      placesService.getPlaceDetails(place.properties.place_id) 
     );
     
     const details = await Promise.all(detailsPromises);
