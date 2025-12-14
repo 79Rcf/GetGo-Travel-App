@@ -30,8 +30,18 @@ src/
     └── Header
     └── cards
     └── placeDetails
+    └── countrycard
+    └──currencycard
+    └──avationstackCard
+    └──paginationDetails
+    └── spinner
+    └── ui
+    └── weatherCard
+    └── tour
+    
 ├── hooks/
-│   └── useDestination.js
+│   └── useDestination.jsx
+    └── useUserLocation.jsx
 ├── utils
     └── services/
 │   ├── countryService.js       ← Your REST Countries function

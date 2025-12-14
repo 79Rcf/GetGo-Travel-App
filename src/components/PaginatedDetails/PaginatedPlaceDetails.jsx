@@ -106,26 +106,25 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
   }
 
   const getPlaceEmoji = (categories = []) => {
-    if (!categories || categories.length === 0) return '🏞️';
+    if (!categories || categories.length === 0) return 'no poster';
     
     const category = categories[0].toLowerCase();
     
-    if (category.includes('mountain') || category.includes('volcano')) return '⛰️';
-    if (category.includes('park') || category.includes('garden')) return '🌳';
-    if (category.includes('beach') || category.includes('coast')) return '🏖️';
-    if (category.includes('museum') || category.includes('cultural')) return '🏛️';
-    if (category.includes('historical') || category.includes('palace')) return '🏰';
-    if (category.includes('wildlife') || category.includes('animals')) return '🦁';
-    if (category.includes('lake') || category.includes('water')) return '🌊';
-    if (category.includes('shopping') || category.includes('market')) return '🛍️';
-    if (category.includes('restaurant') || category.includes('food')) return '🍽️';
+    if (category.includes('mountain') || category.includes('volcano')) return 'not found';
+    if (category.includes('park') || category.includes('garden')) return 'not found';
+    if (category.includes('beach') || category.includes('coast')) return 'not found';
+    if (category.includes('museum') || category.includes('cultural')) return 'not found';
+    if (category.includes('historical') || category.includes('palace')) return 'not found';
+    if (category.includes('wildlife') || category.includes('animals')) return 'not found';
+    if (category.includes('lake') || category.includes('water')) return 'not found';
+    if (category.includes('shopping') || category.includes('market')) return 'not found';
+    if (category.includes('restaurant') || category.includes('food')) return 'not found';
     
     return '🏞️';
   };
 
   return (
     <div>
-      {/* Header with filter info */}
       <div className="mb-6 flex items-center justify-between flex-wrap gap-2">
         <div className="text-sm text-gray-600 flex items-center gap-2">
           <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
@@ -138,7 +137,6 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
         </div>
       </div>
 
-      {/* Cards Grid - New Compact Design */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {visiblePlaces.map((place, index) => {
           const properties = place.properties;
@@ -147,7 +145,7 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
           const imageUrl = details?.image || randomImageUrl;
           const placeId = properties.place_id || index;
 
-          // Generate rating if not available
+
           const rating = details?.rating || (Math.random() * 2 + 3).toFixed(1);
           const reviews = details?.reviews || Math.floor(Math.random() * 1000);
 
@@ -158,7 +156,6 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
             >
               <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
                 <div className="relative h-96 overflow-hidden">
-                  {/* Image */}
                   <img 
                     src={imageUrl} 
                     alt={properties.name}
@@ -170,10 +167,9 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
                     }}
                   />
                   
-                  {/* Gradient Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
                   
-                  {/* Rank Badge - Top 3 get special styling */}
+
                   {index < 3 && (
                     <div className="absolute top-4 left-4">
                       <div className={`
@@ -187,7 +183,6 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
                     </div>
                   )}
                   
-                  {/* Like Button */}
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
@@ -204,7 +199,6 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
                     />
                   </button>
 
-                  {/* Category Badge */}
                   {properties.categories && properties.categories.length > 0 && (
                     <div className="absolute top-4 left-4" style={{ marginTop: index < 3 ? '48px' : '0' }}>
                       <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full font-medium capitalize">
@@ -213,9 +207,7 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
                     </div>
                   )}
 
-                  {/* Content Overlay */}
                   <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-                    {/* Title and Distance Row */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1 pr-3">
                         <h3 className="text-2xl font-bold mb-1 leading-tight">
@@ -240,7 +232,6 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
                       )}
                     </div>
 
-                    {/* Info Row */}
                     <div className="flex items-center gap-4 text-sm flex-wrap">
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
@@ -257,7 +248,6 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
                       )}
                     </div>
 
-                    {/* Debug Info - Development only */}
                     {process.env.NODE_ENV === 'development' && (
                       <div className="mt-2 pt-2 border-t border-white/20">
                         <div className="text-xs text-white/60 space-y-1">
@@ -274,7 +264,6 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
         })}
       </div>
 
-      {/* Load More / Show Less Controls */}
       <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-sm text-gray-600">
           Showing <span className="font-semibold">{visiblePlaces.length}</span> of <span className="font-semibold">{filteredPlaces.length}</span> quality attractions
@@ -302,7 +291,7 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
         </div>
       </div>
 
-      {/* Status Message */}
+
       <div className="mt-4 text-center">
         <p className="text-xs text-gray-500">
           {hasMore ? 'Scroll down or tap "Load More" to discover more attractions' : '🎉 All quality attractions displayed'}
