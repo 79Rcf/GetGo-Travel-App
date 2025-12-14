@@ -250,7 +250,6 @@ function useDestination(destinationName = null, userCoords = null) {
 
   
   const currencyCode = countryData?.currencies ? Object.keys(countryData.currencies)[0] : null;
-  // FIX: Define countryCode using countryData (e.g., the CCA2 code)
   const countryCode = countryData?.cca2 || null; 
   const countryNameFromData = countryData?.name?.common || countryData?.name?.official;
   
