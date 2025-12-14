@@ -1,7 +1,18 @@
 import React, { useState, useEffect } from 'react';
 
+
+const getCurrencySymbol = (code) => {
+    switch (code) {
+        case 'USD': return '$';
+        case 'JPY': return '¥';
+        case 'EUR': return '€';
+        case 'GBP': return '£';
+        default: return code.charAt(0);
+    }
+};
+
 const CurrencyConverter = ({ baseCurrency = 'USD', targetCurrency, rate }) => {
-  const [amount, setAmount] = useState(1);
+  const [amount, setAmount] = useState(100); 
   const [convertedAmount, setConvertedAmount] = useState(0);
   const [isConvertingFromBase, setIsConvertingFromBase] = useState(true);
 
@@ -16,7 +27,12 @@ const CurrencyConverter = ({ baseCurrency = 'USD', targetCurrency, rate }) => {
   };
 
   const handleSwapCurrencies = () => {
+
     setIsConvertingFromBase(!isConvertingFromBase);
+    
+
+    const newConvertedAmount = isConvertingFromBase ? amount * rate : amount / rate;
+    setAmount(newConvertedAmount); 
   };
 
   const formatCurrency = (value) => {
@@ -28,8 +44,8 @@ const CurrencyConverter = ({ baseCurrency = 'USD', targetCurrency, rate }) => {
 
   if (!rate) {
     return (
-      <div className="bg-white rounded-lg shadow p-4">
-        <h3 className="font-bold text-lg mb-2">Currency Converter</h3>
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h3 className="text-xl font-bold mb-4">Currency Exchange</h3>
         <p className="text-gray-500 text-sm">Exchange rate unavailable</p>
       </div>
     );
@@ -39,90 +55,100 @@ const CurrencyConverter = ({ baseCurrency = 'USD', targetCurrency, rate }) => {
   const toCurrency = isConvertingFromBase ? targetCurrency : baseCurrency;
   const displayRate = isConvertingFromBase ? rate : 1 / rate;
 
-  return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="font-bold">Currency Converter</h3>
-        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-          Live
-        </span>
-      </div>
+  const renderCurrencyBox = (isFrom, currencyCode, value) => {
+    const symbol = getCurrencySymbol(currencyCode);
+    const boxColor = isFrom 
+      ? "bg-gray-50 border border-gray-100"
+      : "bg-red-50/50 border border-red-100"; 
+    const symbolColor = isFrom ? "bg-gray-200 text-gray-700" : "bg-red-200 text-red-700";
 
-
-      <div className="mb-3">
-        <div className="text-xs text-gray-500 mb-1">Exchange Rate</div>
-        <div className="text-sm font-semibold text-blue-700">
-          1 {fromCurrency} = {displayRate.toFixed(4)} {toCurrency}
-        </div>
-      </div>
-
-
-      <div className="space-y-3">
-        <div>
-          <div className="flex justify-between items-center mb-1">
-            <label className="text-xs text-gray-600">Amount</label>
-            <span className="text-xs font-medium">{fromCurrency}</span>
-          </div>
-          <div className="relative">
-            <input
-              type="number"
-              value={amount}
-              onChange={handleAmountChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-              placeholder="0.00"
-              min="0"
-              step="0.01"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-center">
-          <button
-            onClick={handleSwapCurrencies}
-            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-sm"
-            title="Swap currencies"
+    return (
+      <div className={`p-4 rounded-xl shadow-inner ${boxColor}`}>
+        <div className="flex justify-between items-start">
+          <div 
+            className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold ${symbolColor}`}
           >
-            ⇅
-          </button>
-        </div>
-
-        <div>
-          <div className="flex justify-between items-center mb-1">
-            <label className="text-xs text-gray-600">Converted</label>
-            <span className="text-xs font-medium">{toCurrency}</span>
+            {symbol}
           </div>
-          <div className="border border-gray-300 rounded px-3 py-2 bg-gray-50">
-            <div className="font-semibold">
-              {formatCurrency(convertedAmount)}
-            </div>
+          
+          <div className="text-right">
+            <p className="text-sm font-semibold text-gray-700 mb-1">
+              {isFrom ? 'From' : 'To'}
+            </p>
+            {isFrom ? (
+              <div className="flex items-center relative">
+                <input
+                  type="number"
+                  value={amount}
+                  onChange={handleAmountChange}
+                  // Styling to make the input look like the display value
+                  className="bg-transparent text-2xl font-black w-full text-right focus:outline-none"
+                  placeholder="0"
+                  min="0"
+                  step="1"
+                />
+
+                <span className="absolute right-0 text-gray-400 text-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                </span>
+              </div>
+            ) : (
+
+              <p className="text-3xl font-black text-gray-900">
+                {formatCurrency(value)}
+              </p>
+            )}
+            <p className="text-sm text-gray-500 mt-1">{currencyCode}</p>
           </div>
         </div>
       </div>
+    );
+  };
 
-      <div className="mt-4 pt-3 border-t border-gray-100">
-        <p className="text-xs text-gray-600 mb-2">Quick convert:</p>
-        <div className="flex flex-wrap gap-1">
-          {[10, 50, 100, 500].map((quickAmount) => (
+  return (
+    <div className="bg-white rounded-xl shadow-lg p-6 font-sans border border-gray-100 h-full flex flex-col justify-between">
+      <div>
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-bold text-gray-900">Currency Exchange</h3>
+          <span className="text-xs flex items-center text-blue-700 font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-7-8a7 7 0 1114 0 7 7 0 01-14 0z" clipRule="evenodd" />
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+            </svg>
+            Live Rate
+          </span>
+        </div>
+
+
+        <div className="space-y-3">
+          {renderCurrencyBox(true, fromCurrency, amount)}
+
+          <div className="flex justify-center -my-3 z-10 relative">
             <button
-              key={quickAmount}
-              onClick={() => setAmount(quickAmount)}
-              className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+              onClick={handleSwapCurrencies}
+              className="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-md hover:bg-gray-50 flex items-center justify-center text-lg text-gray-600 transition-all transform hover:rotate-180"
+              title="Swap currencies"
             >
-              {quickAmount}
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 10v-5m0 0l4 4m-4-4l-4 4" />
+              </svg>
             </button>
-          ))}
+          </div>
+
+          {renderCurrencyBox(false, toCurrency, convertedAmount)}
+        </div>
+        <div className="mt-4 text-center text-sm text-gray-700 font-medium">
+            1 {baseCurrency} = {rate.toFixed(1)} {targetCurrency}
         </div>
       </div>
 
-      <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
-        <div className="flex justify-between">
-          <span>{baseCurrency} → {targetCurrency}</span>
-          <span className="font-medium">{rate.toFixed(4)}</span>
-        </div>
-        <div className="flex justify-between mt-1">
-          <span>{targetCurrency} → {baseCurrency}</span>
-          <span className="font-medium">{(1 / rate).toFixed(4)}</span>
-        </div>
+      <div className="mt-6 flex justify-center text-sm text-blue-500 hover:text-blue-700 cursor-pointer transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.356-2m15.356 2H15" />
+        </svg>
+        Refresh
       </div>
     </div>
   );

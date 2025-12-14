@@ -5,6 +5,7 @@ import getCurrency from '../utils/services/currencyService';
 import getAirports from '../utils/services/airportService';
 import placesService from '../utils/services/placesService';
 import getCountryByCoordinates from '../utils/services/locationService';
+import getPexelsImages from '../utils/services/pexelService';
 
 
 async function getPlaces(lat, lon, countryName) {
@@ -249,27 +250,116 @@ function useDestination(destinationName = null, userCoords = null) {
 
   
   const currencyCode = countryData?.currencies ? Object.keys(countryData.currencies)[0] : null;
-  const countryCode = countryData?.cca2 || countryData?.cca3;
+  // FIX: Define countryCode using countryData (e.g., the CCA2 code)
+  const countryCode = countryData?.cca2 || null; 
+  const countryNameFromData = countryData?.name?.common || countryData?.name?.official;
   
-  const lat = userCoords?.lat || countryData?.latlng?.[0];
-  const lon = userCoords?.lon || countryData?.latlng?.[1];
+  const lat = destinationName ? countryData?.latlng?.[0] : (userCoords?.lat || countryData?.latlng?.[0]);
+  const lon = destinationName ? countryData?.latlng?.[1] : (userCoords?.lon || countryData?.latlng?.[1]);
   
 
   const countryName = countryData?.name?.common || countryData?.name?.official;
 
   const placesQuery = useQuery({
-    queryKey: ['places', shouldUseUserLocation ? 'user-location' : destinationName, lat, lon, countryName],
-    queryFn: () => getPlaces(lat, lon, countryName),
-    enabled: !!lat && !!lon,
+    queryKey: ['places', destinationName || 'user-location', lat, lon, countryNameFromData],
+    queryFn: () => getPlaces(lat, lon, countryNameFromData),
+    enabled: !!lat && !!lon && !!countryNameFromData,
   });
   
+
+
+const toursQuery = useQuery({
+  // countryCode is now defined
+  queryKey: ['tours', destinationName, countryCode], 
+  queryFn: async () => {
+    const tourConcepts = [
+      { title: 'City Highlights Tour', search: `${countryData?.capital?.[0] || countryData?.name?.common} city landmarks` },
+      { title: 'Food & Culture Experience', search: `${countryData?.name?.common} food culture local cuisine` },
+      { title: 'Nature & Scenery Adventure', search: `${countryData?.name?.common} nature landscape` },
+      { title: 'Historical Sites Pass', search: `${countryData?.name?.common} historical sites` }
+    ];
+
+    const toursWithImages = await Promise.all(
+      tourConcepts.map(async (tour, index) => {
+        try {
+          const imageResult = await getPexelsImages(tour.search, 1);
+          return {
+            id: index + 1,
+            title: tour.title,
+            description: getTourDescription(tour.title, countryData?.name?.common),
+            duration: getTourDuration(tour.title),
+            price: getTourPrice(tour.title),
+            rating: (Math.random() * 0.5 + 4.5).toFixed(1),
+            reviewCount: Math.floor(Math.random() * 300) + 50,
+            category: tour.title.split(' ').pop() + ' Tour',
+            ...(imageResult?.photos?.[0] && {
+              pexelsImage: {
+                url: imageResult.photos[0].src.medium,
+                photographer: imageResult.photos[0].photographer,
+                photographerUrl: imageResult.photos[0].photographer_url
+              }
+            })
+          };
+        } catch (error) {
+          console.error(`Failed to fetch tour image for ${tour.title}:`, error);
+          return getFallbackTour(tour.title, index, countryData?.name?.common);
+        }
+      })
+    );
+    
+    return toursWithImages;
+  },
+  enabled: !!countryData, 
+});
+
+const getTourDescription = (title, countryName) => {
+  const descriptions = {
+    'City Highlights Tour': `Explore major landmarks and historical sites in ${countryName} with a local guide.`,
+    'Food & Culture Experience': `Taste local ${countryName} cuisine and learn about culinary traditions.`,
+    'Nature & Scenery Adventure': `Visit natural wonders and scenic viewpoints in ${countryName}.`,
+    'Historical Sites Pass': `Access to multiple museums and historical attractions in ${countryName}.`
+  };
+  return descriptions[title] || `Experience ${countryName} with this guided tour.`;
+};
+
+const getTourDuration = (title) => {
+  const durations = {
+    'City Highlights Tour': '4 hours',
+    'Food & Culture Experience': '3 hours',
+    'Nature & Scenery Adventure': '6 hours',
+    'Historical Sites Pass': 'Full day'
+  };
+  return durations[title] || '4 hours';
+};
+
+const getTourPrice = (title) => {
+  const prices = {
+    'City Highlights Tour': 65,
+    'Food & Culture Experience': 45,
+    'Nature & Scenery Adventure': 89,
+    'Historical Sites Pass': 75
+  };
+  return prices[title] || 60;
+};
+
+const getFallbackTour = (title, index, countryName) => ({
+  id: index + 1,
+  title,
+  description: getTourDescription(title, countryName),
+  duration: getTourDuration(title),
+  price: getTourPrice(title),
+  rating: (Math.random() * 0.5 + 4.5).toFixed(1),
+  reviewCount: Math.floor(Math.random() * 300) + 50,
+  category: title.split(' ').pop() + ' Tour',
+  pexelsImage: null
+});
  
 
-  const weatherQuery = useQuery({
-    queryKey: ['weather', destinationName, lat, lon],
-    queryFn: () => getWeather(lat, lon),
-    enabled: !!lat && !!lon,
-  });
+const weatherQuery = useQuery({
+  queryKey: ['weather', destinationName, lat, lon],
+  queryFn: () => getWeather(lat, lon),
+  enabled: !!lat && !!lon,
+});
 
   const currencyQuery = useQuery({
     queryKey: ['currency', destinationName, currencyCode],
@@ -278,7 +368,8 @@ function useDestination(destinationName = null, userCoords = null) {
   });
 
   const airportsQuery = useQuery({
-    queryKey: ['airports', destinationName, countryCode],
+    // countryCode is now defined
+    queryKey: ['airports', destinationName, countryCode], 
     queryFn: () => getAirports(countryCode),
     enabled: !!countryCode,
     staleTime: 1000 * 60 * 60 * 24,
@@ -319,14 +410,16 @@ function useDestination(destinationName = null, userCoords = null) {
                     currencyQuery.isLoading || 
                     airportsQuery.isLoading || 
                     placesQuery.isLoading ||
-                    placeDetailsQuery.isLoading;
+                    placeDetailsQuery.isLoading || 
+                    toursQuery.isLoading;
 
   const error = countryQuery.error || 
                 weatherQuery.error || 
                 currencyQuery.error || 
                 airportsQuery.error || 
                 placesQuery.error ||
-                placeDetailsQuery.error;
+                placeDetailsQuery.error || 
+                toursQuery.error;
 
   return {
     country: countryData,
@@ -335,10 +428,13 @@ function useDestination(destinationName = null, userCoords = null) {
     airports: airportsQuery.data,
     places: placesQuery.data,
     placeDetails: placeDetailsQuery.data,
+    tours: toursQuery.data,
     
     currencyCode,
     countryCode,
     coordinates: { lat, lon },
+
+    searchCountryName: destinationName, 
     
     isLoading,
     isError: !!error,
@@ -351,6 +447,7 @@ function useDestination(destinationName = null, userCoords = null) {
       airports: airportsQuery.status,
       places: placesQuery.status,
       placeDetails: placeDetailsQuery.status,
+      tours: toursQuery.status,
     }
   };
 }

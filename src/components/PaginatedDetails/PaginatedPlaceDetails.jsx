@@ -1,26 +1,39 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { MapPin, Star, Heart, Navigation, TrendingUp, Award } from 'lucide-react';
 
 const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, increment = 3 }) => {
   const [visibleCount, setVisibleCount] = useState(initialVisible);
+  const [liked, setLiked] = useState({});
 
-  // Debug logging
-  useEffect(() => {
-    console.log('=== PAGINATED PLACE DETAILS DEBUG ===');
-    console.log('Places received:', places);
-    console.log('Places length:', places?.length);
-    console.log('Place details received:', placeDetails);
-    console.log('Place details length:', placeDetails?.length);
+  const toggleLike = (placeId) => {
+    setLiked(prev => ({ ...prev, [placeId]: !prev[placeId] }));
+  };
+
+  const getRandomImage = (categories = [], placeId, index) => {
+    const baseUrl = 'https://picsum.photos';
+    const seed = placeId || `place-${index}`;
     
-    if (places && places.length > 0) {
-      console.log('First place:', places[0]);
-      console.log('First place properties:', places[0].properties);
+    let imageId = Math.abs(seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)) % 1000;
+
+    if (categories && categories.length > 0) {
+      const category = categories[0].toLowerCase();
+      if (category.includes('mountain') || category.includes('volcano')) {
+        imageId = 100 + (imageId % 100);
+      } else if (category.includes('park') || category.includes('garden')) {
+        imageId = 200 + (imageId % 100); 
+      } else if (category.includes('beach') || category.includes('coast')) {
+        imageId = 300 + (imageId % 100); 
+      } else if (category.includes('museum') || category.includes('cultural')) {
+        imageId = 400 + (imageId % 100); 
+      } else if (category.includes('historical') || category.includes('palace')) {
+        imageId = 500 + (imageId % 100); 
+      }
     }
-  }, [places, placeDetails]);
+    
+    return `${baseUrl}/400/300?random=${imageId}`;
+  };
 
   const filterLowQualityPlaces = (placesToFilter) => {
-    console.log('=== FILTER DEBUG ===');
-    console.log('Input places to filter:', placesToFilter?.length);
-    
     if (!placesToFilter) {
       console.log('No places to filter');
       return [];
@@ -28,10 +41,9 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
     
     const filtered = placesToFilter.filter(place => {
       const props = place.properties;
-      console.log('Checking place:', props?.name);
       
       if (!props) {
-        console.log('  ❌ No properties');
+        console.log('   No properties');
         return false;
       }
       
@@ -39,39 +51,24 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
       const hasCategory = props.categories && props.categories.length > 0;
       const hasAddress = props.formatted || props.address_line2;
       const notGeneric = !props.name?.match(/^(building|house|shop|unknown|home|road|street|way)$/i);
-
-      console.log('  Name check:', hasName, props.name);
-      console.log('  Category check:', hasCategory, props.categories);
-      console.log('  Address check:', hasAddress, props.formatted);
-      console.log('  Not generic check:', notGeneric);
       
       const score = [hasName, hasCategory, hasAddress, notGeneric].filter(Boolean).length;
-      console.log('  Score:', score, '/ 4');
-      
       const passes = score >= 3;
-      console.log('  Passes filter?', passes);
       
       return passes;
     });
-    
-    console.log('Filtered result:', filtered.length, 'out of', placesToFilter.length);
-    console.log('Filtered places:', filtered.map(p => p.properties.name));
     
     return filtered;
   };
 
   const filteredPlaces = useMemo(() => {
-    console.log('useMemo running with places:', places?.length);
     return filterLowQualityPlaces(places);
   }, [places]);
 
-  // Debug: Log filtered places
   useEffect(() => {
-    console.log('Filtered places result:', filteredPlaces?.length);
   }, [filteredPlaces]);
 
   if (!filteredPlaces || filteredPlaces.length === 0) {
-    console.log('Rendering empty state - no filtered places');
     return (
       <div className="text-center py-8 text-gray-500">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
@@ -108,121 +105,186 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
     });
   }
 
-  console.log('Rendering with visible places:', visiblePlaces.length);
-  console.log('Details map size:', Object.keys(detailsMap).length);
+  const getPlaceEmoji = (categories = []) => {
+    if (!categories || categories.length === 0) return '🏞️';
+    
+    const category = categories[0].toLowerCase();
+    
+    if (category.includes('mountain') || category.includes('volcano')) return '⛰️';
+    if (category.includes('park') || category.includes('garden')) return '🌳';
+    if (category.includes('beach') || category.includes('coast')) return '🏖️';
+    if (category.includes('museum') || category.includes('cultural')) return '🏛️';
+    if (category.includes('historical') || category.includes('palace')) return '🏰';
+    if (category.includes('wildlife') || category.includes('animals')) return '🦁';
+    if (category.includes('lake') || category.includes('water')) return '🌊';
+    if (category.includes('shopping') || category.includes('market')) return '🛍️';
+    if (category.includes('restaurant') || category.includes('food')) return '🍽️';
+    
+    return '🏞️';
+  };
 
   return (
     <div>
-      <div className="mb-4 text-sm text-gray-600">
-        <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
-          Filtered for quality
-        </span>
-        <span className="ml-2">
-          Showing {filteredPlaces.length} of {places?.length || 0} total results
-        </span>
+      {/* Header with filter info */}
+      <div className="mb-6 flex items-center justify-between flex-wrap gap-2">
+        <div className="text-sm text-gray-600 flex items-center gap-2">
+          <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+            <Award className="w-3 h-3" />
+            Quality Filtered
+          </span>
+          <span>
+            {filteredPlaces.length} of {places?.length || 0} attractions
+          </span>
+        </div>
       </div>
 
+      {/* Cards Grid - New Compact Design */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {visiblePlaces.map((place, index) => {
           const properties = place.properties;
           const details = properties.place_id ? detailsMap[properties.place_id] : null;
+          const randomImageUrl = getRandomImage(properties.categories, properties.place_id, index);
+          const imageUrl = details?.image || randomImageUrl;
+          const placeId = properties.place_id || index;
 
-          console.log(`Rendering place ${index}:`, properties.name);
-          console.log('  Place ID:', properties.place_id);
-          console.log('  Found details:', !!details);
+          // Generate rating if not available
+          const rating = details?.rating || (Math.random() * 2 + 3).toFixed(1);
+          const reviews = details?.reviews || Math.floor(Math.random() * 1000);
 
           return (
             <div 
-              key={properties.place_id || index} 
-              className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow"
+              key={placeId}
+              className="group cursor-pointer"
             >
-              <div className="h-40 overflow-hidden bg-gray-100">
-                {details?.image ? (
+              <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
+                <div className="relative h-96 overflow-hidden">
+                  {/* Image */}
                   <img 
-                    src={details.image} 
+                    src={imageUrl} 
                     alt={properties.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    loading="lazy"
                     onError={(e) => {
-                      console.log('Image failed to load for:', properties.name);
-                      e.target.style.display = 'none';
-                      e.target.parentElement.innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-400"><span class="text-4xl">🏞️</span></div>';
+                      e.target.onerror = null;
+                      e.target.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='60'%3E${getPlaceEmoji(properties.categories)}%3C/text%3E%3C/svg%3E`;
                     }}
-                    onLoad={() => console.log('Image loaded for:', properties.name)}
                   />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <span className="text-4xl">🏞️</span>
-                  </div>
-                )}
-              </div>
+                  
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
+                  
+                  {/* Rank Badge - Top 3 get special styling */}
+                  {index < 3 && (
+                    <div className="absolute top-4 left-4">
+                      <div className={`
+                        ${index === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' : 
+                          index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500' : 
+                          'bg-gradient-to-br from-orange-400 to-orange-600'}
+                        text-white font-bold w-10 h-10 rounded-full flex items-center justify-center text-lg shadow-lg
+                      `}>
+                        #{index + 1}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Like Button */}
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleLike(placeId);
+                    }}
+                    className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm rounded-full p-2 transition-all hover:bg-white/30 hover:scale-110"
+                  >
+                    <Heart 
+                      className={`w-5 h-5 transition-colors ${
+                        liked[placeId] 
+                          ? 'fill-red-500 text-red-500' 
+                          : 'text-white'
+                      }`} 
+                    />
+                  </button>
 
-              <div className="p-4">
-                <h3 className="font-bold text-gray-800 truncate">
-                  {properties.name || 'Unnamed Place'}
-                </h3>
-
-                {properties.categories && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {properties.categories.slice(0, 2).map((category, idx) => (
-                      <span 
-                        key={idx} 
-                        className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
-                      >
-                        {category.split('.').pop()}
+                  {/* Category Badge */}
+                  {properties.categories && properties.categories.length > 0 && (
+                    <div className="absolute top-4 left-4" style={{ marginTop: index < 3 ? '48px' : '0' }}>
+                      <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full font-medium capitalize">
+                        {properties.categories[0].split('.').pop()}
                       </span>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  )}
 
-                {properties.formatted && (
-                  <p className="text-sm text-gray-600 mt-2 truncate" title={properties.formatted}>
-                    📍 {properties.formatted}
-                  </p>
-                )}
+                  {/* Content Overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                    {/* Title and Distance Row */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1 pr-3">
+                        <h3 className="text-2xl font-bold mb-1 leading-tight">
+                          {properties.name || 'Unnamed Place'}
+                        </h3>
+                        <div className="flex items-center gap-1 text-sm text-white/90 mb-2">
+                          <MapPin className="w-4 h-4" />
+                          <span className="line-clamp-1">
+                            {properties.formatted || properties.address_line2 || 'Location'}
+                          </span>
+                        </div>
+                      </div>
+                      {properties.distance && (
+                        <div className="text-right flex-shrink-0">
+                          <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm px-2 py-1 rounded-lg">
+                            <Navigation className="w-3 h-3" />
+                            <span className="text-xs font-semibold">
+                              {(properties.distance / 1000).toFixed(1)}km
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
-                {properties.distance && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    {properties.distance.toFixed(0)} meters away
-                  </p>
-                )}
+                    {/* Info Row */}
+                    <div className="flex items-center gap-4 text-sm flex-wrap">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <span className="font-semibold">{rating}</span>
+                        <span className="text-white/70">({reviews})</span>
+                      </div>
+                      {properties.categories && properties.categories.length > 1 && (
+                        <div className="flex items-center gap-1">
+                          <TrendingUp className="w-4 h-4" />
+                          <span className="text-white/90 text-xs">
+                            {properties.categories.length} categories
+                          </span>
+                        </div>
+                      )}
+                    </div>
 
-                {details?.rating && (
-                  <div className="mt-2 flex items-center">
-                    <span className="text-yellow-500">⭐</span>
-                    <span className="ml-1 text-sm font-medium">
-                      {details.rating.toFixed(1)}
-                    </span>
-                    <span className="ml-1 text-xs text-gray-500">
-                      ({details.reviews || 0} reviews)
-                    </span>
+                    {/* Debug Info - Development only */}
+                    {process.env.NODE_ENV === 'development' && (
+                      <div className="mt-2 pt-2 border-t border-white/20">
+                        <div className="text-xs text-white/60 space-y-1">
+                          <div>ID: {properties.place_id || 'N/A'}</div>
+                          <div>Details: {details ? '✓' : '✗'} | Image: {imageUrl ? '✓' : '✗'}</div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-                
-                {process.env.NODE_ENV === 'development' && (
-                  <div className="mt-2 text-xs text-gray-400">
-                    <div className="font-medium">Debug Info:</div>
-                    <div>Place ID: {properties.place_id}</div>
-                    <div>Has details: {details ? 'Yes' : 'No'}</div>
-                    <div>Image URL: {details?.image ? 'Yes' : 'No'}</div>
-                    <div>Rating: {details?.rating || 'N/A'}</div>
-                  </div>
-                )}
+                </div>
               </div>
             </div>
           );
         })}
       </div>
 
+      {/* Load More / Show Less Controls */}
       <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-sm text-gray-600">
-          Showing {visiblePlaces.length} of {filteredPlaces.length} quality attractions
+          Showing <span className="font-semibold">{visiblePlaces.length}</span> of <span className="font-semibold">{filteredPlaces.length}</span> quality attractions
         </div>
         
         <div className="flex gap-2">
           {visibleCount > initialVisible && (
             <button
               onClick={showLess}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
             >
               Show Less
             </button>
@@ -231,7 +293,7 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
           {hasMore && (
             <button
               onClick={loadMore}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
             >
               Load {Math.min(increment, filteredPlaces.length - visibleCount)} More
               <span className="text-lg">↓</span>
@@ -240,9 +302,10 @@ const PaginatedPlaceDetails = ({ places, placeDetails = [], initialVisible = 6, 
         </div>
       </div>
 
+      {/* Status Message */}
       <div className="mt-4 text-center">
         <p className="text-xs text-gray-500">
-          {hasMore ? 'Scroll down or tap "Load More" to see more quality attractions' : 'All quality attractions displayed'}
+          {hasMore ? 'Scroll down or tap "Load More" to discover more attractions' : '🎉 All quality attractions displayed'}
         </p>
       </div>
     </div>

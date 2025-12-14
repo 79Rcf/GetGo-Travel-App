@@ -12,7 +12,6 @@ const getMeteo = async (latitude, longitude) => {
         return data;
     } catch (error) {
         console.error("Failed to fetch weather:", error);     
-        throw error;
     }
 }
 
