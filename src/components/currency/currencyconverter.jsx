@@ -81,7 +81,7 @@ const CurrencyConverter = ({ baseCurrency = 'USD', targetCurrency, rate }) => {
                   type="number"
                   value={amount}
                   onChange={handleAmountChange}
-                  // Styling to make the input look like the display value
+
                   className="bg-transparent text-2xl font-black w-full text-right focus:outline-none"
                   placeholder="0"
                   min="0"
