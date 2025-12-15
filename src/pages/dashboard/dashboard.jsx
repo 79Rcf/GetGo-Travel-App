@@ -6,7 +6,7 @@ import Map from "../../components/map/Map";
 import WeatherCard from "../../components/weatherCard/weatherCard";
 import AviationCard from "../../components/avaitionStackCard/avaitionCard";
 import CountryCard from "../../components/countryCard/CountryCard";
-import CurrencyConverter from "../../components/currency/CurrencyConverter";
+import CurrencyConverter from "../../components/currency/currencyconverter";
 import PaginatedPlaceDetails from "../../components/PaginatedDetails/PaginatedPlaceDetails";
 import TourCard from "../../components/tour/TourCard";
 
