@@ -19,7 +19,6 @@ const CountryCard = ({ country }) => {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Header Section */}
       <div className="relative rounded-2xl md:rounded-3xl overflow-hidden shadow-lg md:shadow-2xl group">
         <div className="absolute inset-0 bg-white border border-gray-200"></div>
         <div className="absolute inset-0 opacity-20" style={{
@@ -28,7 +27,6 @@ const CountryCard = ({ country }) => {
         
         <div className="relative h-auto min-h-[280px] md:h-96 flex flex-col md:flex-row items-center justify-between p-4 md:p-8">
           <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8 w-full">
-            {/* Flag Section */}
             <div className="relative group-hover:scale-105 transition-transform duration-300 order-1 md:order-1">
               <img 
                 src={country.flags?.png} 
@@ -45,8 +43,7 @@ const CountryCard = ({ country }) => {
                 </div>
               )}
             </div>
-            
-            {/* Country Info */}
+
             <div className="text-black flex-1 order-2 md:order-2 text-center md:text-left">
               <div className="flex flex-wrap justify-center md:justify-start items-center gap-2 md:gap-3 mb-3">
                 <span className="bg-gray-200 backdrop-blur-sm px-3 py-1 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold text-black">
@@ -107,7 +104,6 @@ const CountryCard = ({ country }) => {
             </div>
           </div>
           
-          {/* Like Button */}
           <button 
             onClick={() => setIsLiked(!isLiked)}
             className="absolute top-4 right-4 md:top-6 md:right-6 bg-gray-200 backdrop-blur-sm rounded-full p-2 md:p-3 transition-all hover:bg-gray-300 hover:scale-110 order-3"
@@ -121,7 +117,7 @@ const CountryCard = ({ country }) => {
         </div>
       </div>
 
-      {/* Stats Grid */}
+
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
         {country.area && (
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl md:rounded-2xl p-3 md:p-6 text-white shadow-lg hover:scale-105 transition-transform cursor-pointer">
@@ -158,7 +154,6 @@ const CountryCard = ({ country }) => {
         )}
       </div>
 
-      {/* Main Content Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         <div className="bg-white rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 hover:shadow-xl transition-shadow">
           <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
